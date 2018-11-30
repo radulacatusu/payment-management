@@ -1,13 +1,19 @@
 CREATE TABLE account (
   id SERIAL PRIMARY KEY,
-  name character varying(255) NOT NULL,
+  name character varying(255) NOT NULL UNIQUE,
   currency_id character(3) NOT NULL,
-  balance numeric (15, 2), 
-  balance_status character(2),
-  balance_timestamp timestamp without time zone,
-  date_opened timestamp without time zone,
-  account_type character(6)
+  balance numeric (15, 2) NOT NULL,
+  balance_status character(2) NOT NULL,
+  balance_timestamp timestamp NOT NULL,
+  date_opened timestamp NOT NULL,
+  account_type character(6) NOT NULL
 );
+
+alter table account alter column balance set default 0.00;
+alter table account alter column balance_status set default 'DE';
+alter table account alter column balance_timestamp set default current_timestamp;
+alter table account alter column date_opened set default current_timestamp;
+alter table account alter column account_type set default 'CLIENT';
 
 CREATE TABLE transfer (
   id SERIAL PRIMARY KEY,
@@ -15,7 +21,13 @@ CREATE TABLE transfer (
   currency_id character(3) NOT NULL,
   debit_account_id bigint NOT NULL,
   credit_account_id bigint NOT NULL,
-  execution_date timestamp without time zone
+  execution_date timestamp NOT NULL
+);
+
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  name character varying(255) NOT NULL,
+  password character varying(255) NOT NULL
 );
 
 CREATE INDEX account_name_hidx ON account USING btree (name);
