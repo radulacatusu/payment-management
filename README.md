@@ -21,7 +21,7 @@ Use one of the several ways of running a Spring Boot application. Below are just
 
 ## API Documentation
 
-Swagger can be accessed at http://localhost:8080/swagger-ui.html
+Swagger can be accessed at http://localhost:8080/swagger-ui.html or http://34.209.73.115:8095/swagger-ui.html
 
 ## Testing the API
 
@@ -32,7 +32,7 @@ Swagger can be accessed at http://localhost:8080/swagger-ui.html
 ## To manually test the application
 
 I used POSTMAN and cURL to test the application. 
-It is also deployed on AWS - http://34.209.73.115:8095/sign-up and connected to a Postgres AWS instance
+It is also deployed on AWS - http://34.209.73.115:8095 and connected to a Postgres AWS instance
 
 
 ### Sign-up
