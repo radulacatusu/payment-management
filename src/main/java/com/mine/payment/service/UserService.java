@@ -11,7 +11,6 @@ public interface UserService {
 
     /**
      * Method used for user creation
-     *
      */
     boolean createUser(User user);
 

@@ -14,7 +14,7 @@ import java.lang.annotation.*;
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface CurrencyConstraint {
-    String message() default "Invalid currency";
+    String message() default "Invalid currency. Only EUR is accepted.";
 
     Class<?>[] groups() default {};
 

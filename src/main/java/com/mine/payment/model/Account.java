@@ -3,12 +3,15 @@ package com.mine.payment.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.mine.payment.annotation.CurrencyConstraint;
+import com.mine.payment.util.AccountType;
+import com.mine.payment.util.BalanceStatus;
 import com.mine.payment.util.BigDecimalSerializer;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.Objects;
 
 /**
  * @stefanl
@@ -34,8 +37,9 @@ public class Account {
     @Column(scale = 2, precision = 15)
     private BigDecimal balance;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "BALANCE_STATUS", length = 2)
-    private String balanceStatus;
+    private BalanceStatus balanceStatus;
 
     @Column(name = "BALANCE_TIMESTAMP")
     private Timestamp balanceTimestamp;
@@ -43,8 +47,9 @@ public class Account {
     @Column(name = "DATE_OPENED")
     private Timestamp dateOpened;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "ACCOUNT_TYPE", length = 6)
-    private String accountType;
+    private AccountType accountType;
 
     public long getId() {
         return id;
@@ -78,11 +83,11 @@ public class Account {
         this.balance = balance;
     }
 
-    public String getBalanceStatus() {
+    public BalanceStatus getBalanceStatus() {
         return balanceStatus;
     }
 
-    public void setBalanceStatus(String balanceStatus) {
+    public void setBalanceStatus(BalanceStatus balanceStatus) {
         this.balanceStatus = balanceStatus;
     }
 
@@ -102,11 +107,11 @@ public class Account {
         this.dateOpened = dateOpened;
     }
 
-    public String getAccountType() {
+    public AccountType getAccountType() {
         return accountType;
     }
 
-    public void setAccountType(String accountType) {
+    public void setAccountType(AccountType accountType) {
         this.accountType = accountType;
     }
 
@@ -122,5 +127,21 @@ public class Account {
                 ", dateOpened=" + dateOpened +
                 ", accountType='" + accountType + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Account account = (Account) o;
+        return id == account.id &&
+                Objects.equals(name, account.name) &&
+                Objects.equals(currencyId, account.currencyId) &&
+                accountType == account.accountType;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, currencyId, accountType);
     }
 }

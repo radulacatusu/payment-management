@@ -1,7 +1,6 @@
 package com.mine.payment.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mine.payment.model.User;
 import com.mine.payment.security.JwtTokenProvider;
 import com.mine.payment.service.UserService;

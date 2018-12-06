@@ -1,0 +1,4 @@
+INSERT INTO account (id, name,currency_id,balance,balance_status,balance_timestamp,date_opened,account_type) VALUES (2, 'Credit Account Test','EUR','0','CR', current_timestamp, current_timestamp,'CLIENT');
+INSERT INTO account (id, name,currency_id,balance,balance_status,balance_timestamp,date_opened,account_type) VALUES (3, 'Credit Account','EUR','30','CR', current_timestamp, current_timestamp,'CLIENT');
+INSERT INTO account (id, name,currency_id,balance,balance_status,balance_timestamp,date_opened,account_type) VALUES (4, 'Debit Account','EUR','30','DR', current_timestamp, current_timestamp,'CLIENT');
+INSERT INTO account (id, name,currency_id,balance,balance_status,balance_timestamp,date_opened,account_type) VALUES (5, 'Credit Account USD','USD','30','CR', current_timestamp, current_timestamp,'CLIENT');
