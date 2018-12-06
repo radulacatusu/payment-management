@@ -21,7 +21,7 @@ Use one of the several ways of running a Spring Boot application. Below are just
 
 ## API Documentation
 
-Swagger can be accessed at http://localhost:8080/swagger-ui.html or http://34.209.73.115:8095/swagger-ui.html
+Swagger can be accessed at http://localhost:8095/swagger-ui.html or http://34.209.73.115:8095/swagger-ui.html
 
 ## Testing the API
 
@@ -37,7 +37,7 @@ It is also deployed on AWS - http://34.209.73.115:8095 and connected to a Postgr
 
 ### Sign-up
 ```
-POST - http://localhost:8080/sign-up
+POST - http://localhost:8095/sign-up
 ```
 ##### Body
 ```
@@ -54,7 +54,7 @@ Response: 201 CREATED
 ```
 ### Login
 ```
-POST - http://localhost:8080/access-tokens
+POST - http://localhost:8095/access-tokens
 ```
 ##### Body
 ```
@@ -71,7 +71,7 @@ Response: 200 OK
 ```
 ### Create new account
 ```
-POST - http://localhost:8080/accounts
+POST - http://localhost:8095/accounts
 ```
 ##### Body
 ```
@@ -88,7 +88,7 @@ Response: 201 CREATED
 ```
 ### Get an account
 ```
-GET - http://localhost:8080/accounts/1
+GET - http://localhost:8095/accounts/1
 ```
 Response: 200 OK
 ```
@@ -105,7 +105,7 @@ Response: 200 OK
 ```
 ### Load an account
 ```
-POST - http://localhost:8080/accounts/2/load
+POST - http://localhost:8095/accounts/2/load
 ```
 ##### Body
 ```
@@ -124,7 +124,7 @@ Response: 200 OK
 ```
 ### Transfer between accounts
 ```
-POST - http://localhost:8080/transfers
+POST - http://localhost:8095/transfers
 ```
 ##### Body
 ```
