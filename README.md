@@ -11,7 +11,7 @@ This is a A Spring Boot Application for Securing a REST API with JSON Web Token 
 ## About
 
 The application is developed with Spring Boot 2.1.0.RELEASE and maven as a building tool.
-The database used is postgres.
+The database used is postgres and is connected to an instance of Amazon RDS.
 
 ## To run the application
 Use one of the several ways of running a Spring Boot application. Below are just three options:
@@ -32,6 +32,8 @@ Swagger can be accessed at http://localhost:8080/swagger-ui.html
 ## To manually test the application
 
 I used POSTMAN and cURL to test the application. 
+It is also deployed on AWS - http://34.209.73.115:8095/sign-up and connected to a Postgres AWS instance
+
 
 ### Sign-up
 ```
