@@ -6,6 +6,7 @@ import com.mine.payment.annotation.CurrencyConstraint;
 import com.mine.payment.util.AccountType;
 import com.mine.payment.util.BalanceStatus;
 import com.mine.payment.util.BigDecimalSerializer;
+import org.springframework.data.jpa.repository.Lock;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;

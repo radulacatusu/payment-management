@@ -1,8 +1,7 @@
 package com.mine.payment.service;
 
-import com.mine.payment.model.Account;
-
-import java.math.BigDecimal;
+import com.mine.payment.api.TransferRequest;
+import com.mine.payment.exception.AccountsValidationException;
 
 /**
  * @stefanl
@@ -14,5 +13,5 @@ public interface TransferService {
      *
      * @return
      */
-    void saveTransfer(Account debitAccount, Account creditAccount, BigDecimal amount);
+    void transferAmount(TransferRequest request) throws AccountsValidationException;
 }

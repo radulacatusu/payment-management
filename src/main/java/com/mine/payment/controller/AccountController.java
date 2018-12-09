@@ -3,10 +3,11 @@ package com.mine.payment.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.mine.payment.api.LoadAccountRequest;
 import com.mine.payment.api.LoadAccountResponse;
+import com.mine.payment.exception.AccountsValidationException;
 import com.mine.payment.model.Account;
 import com.mine.payment.service.AccountService;
-import com.mine.payment.util.AccountType;
 import com.mine.payment.util.JsonUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -55,26 +56,14 @@ public class AccountController {
 
     @PostMapping(value = "{accountId}/load", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<LoadAccountResponse> loadAccount(@PathVariable long accountId,
-                                                           @Valid @RequestBody LoadAccountRequest request) throws JsonProcessingException {
+                                                           @Valid @RequestBody LoadAccountRequest request) {
 
-        Optional<Account> account = accountService.findById(accountId);
-        if (!account.isPresent()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        LoadAccountResponse response = null;
+        try {
+            response = accountService.loadAccount(accountId, request);
+        } catch (AccountsValidationException e) {
+            new ResponseEntity<>(StringUtils.isEmpty(e.getMessage()) ? null : e.getMessage(), null, e.getHttpStatus());
         }
-
-        Optional<Account> ledgerAccount = accountService.findByAccountTypeAndCurrencyId(AccountType.LEDGER,
-                request.getCurrencyId());
-        if (!ledgerAccount.isPresent()) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
-        }
-
-        if (!account.get().getCurrencyId().equals(request.getCurrencyId())) {
-            Map<String, String> map = new HashMap<>();
-            map.put("message", "Currency mismatch between this account and ledger account.");
-            return new ResponseEntity(jsonUtil.writeValueAsString(map), null, HttpStatus.PRECONDITION_FAILED);
-        }
-
-        LoadAccountResponse response = accountService.loadAccount(ledgerAccount.get(), account.get(), request.getAmount());
 
         return new ResponseEntity<>(response, null, HttpStatus.OK);
     }

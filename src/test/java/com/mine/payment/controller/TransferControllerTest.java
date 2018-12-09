@@ -40,24 +40,6 @@ public class TransferControllerTest {
     private String token;
 
     @Test
-    public void noDebitAccountFound() {
-        TransferRequest request = newTransferRequest(100,4,new BigDecimal(10), CURRENCY_ID);
-        assertEquals(404,transferAmount(request).statusCode());
-    }
-
-    @Test
-    public void noCreditAccountFound() {
-        TransferRequest request = newTransferRequest(3,101,new BigDecimal(10), CURRENCY_ID);
-        assertEquals(404,transferAmount(request).statusCode());
-    }
-
-    @Test
-    public void currencyMismatch() {
-        TransferRequest request = newTransferRequest(3,4,new BigDecimal(10), "USD");
-        assertEquals(412,transferAmount(request).statusCode());
-    }
-
-    @Test
     public void transferTest() {
 
         TransferRequest request = newTransferRequest(3,4,new BigDecimal(10), CURRENCY_ID);

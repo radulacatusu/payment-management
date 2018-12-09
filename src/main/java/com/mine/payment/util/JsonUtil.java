@@ -17,8 +17,12 @@ public class JsonUtil {
      * @return
      * @throws JsonProcessingException
      */
-    public String writeValueAsString(Map<String, String> values) throws JsonProcessingException {
+    public String writeValueAsString(Map<String, String> values) {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.writeValueAsString(values);
+        try {
+            return mapper.writeValueAsString(values);
+        } catch (JsonProcessingException e) {
+            return "";
+        }
     }
 }

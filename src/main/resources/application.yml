@@ -2,12 +2,12 @@ server.port: 8095
 
 spring.datasource:
   driver-class-name: org.postgresql.Driver
-  #url: jdbc:postgresql://localhost:5432/payments
-  #username: postgres
-  #password: postgres
-  url: jdbc:postgresql://payments.ctjt5qclcsgv.us-east-2.rds-preview.amazonaws.com:5432/payments
-  username: payments
-  password: payments
+  url: jdbc:postgresql://localhost:5432/payments
+  username: postgres
+  password: postgres
+  #url: jdbc:postgresql://payments.ctjt5qclcsgv.us-east-2.rds-preview.amazonaws.com:5432/payments
+  #username: payments
+  #password: payments
 spring.jpa:
   hibernate:
     ddl-auto: update

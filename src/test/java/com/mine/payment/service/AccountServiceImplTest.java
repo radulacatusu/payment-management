@@ -1,10 +1,14 @@
 package com.mine.payment.service;
 
+import com.jayway.restassured.response.Response;
+import com.mine.payment.api.LoadAccountRequest;
 import com.mine.payment.api.LoadAccountResponse;
+import com.mine.payment.exception.AccountsValidationException;
 import com.mine.payment.model.Account;
 import com.mine.payment.repository.AccountRepository;
 import com.mine.payment.util.AccountType;
 import com.mine.payment.util.BalanceStatus;
+import com.mine.payment.util.JsonUtil;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,12 +18,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Optional;
 
+import static com.mine.payment.controller.AccountControllerTest.newLoadAccountRequest;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -165,7 +171,7 @@ public class AccountServiceImplTest {
     }
 
     @Test
-    public void testLoadAccount() {
+    public void testLoadAccount() throws AccountsValidationException {
         Timestamp now = new Timestamp(System.currentTimeMillis());
         Account ledgerAccount = newAccount(10, "Debited account", CURRENCY_ID, new BigDecimal(500.00),
                 BalanceStatus.DR, now, now, AccountType.CLIENT);
@@ -173,23 +179,67 @@ public class AccountServiceImplTest {
         Account creditedAccount = newAccount(11, "Credited account", CURRENCY_ID, new BigDecimal(40.00),
                 BalanceStatus.CR, now, now, AccountType.CLIENT);
 
-        Account expectedDebitedAccount = newAccount(10, "Debited account", CURRENCY_ID, new BigDecimal(550.00),
+        Account expectedDebitedAccount = newAccount(10, "Debited account", CURRENCY_ID, new BigDecimal(450.00),
                 BalanceStatus.DR, now, now, AccountType.CLIENT);
 
-        Account expectedCreditedAccount = newAccount(11, "Credited account", CURRENCY_ID, new BigDecimal(90.00),
-                BalanceStatus.CR, now, now, AccountType.CLIENT);
+        Account expectedCreditedAccount = newAccount(11, "Credited account", CURRENCY_ID, new BigDecimal(10.00),
+                BalanceStatus.DR, now, now, AccountType.CLIENT);
+
+        Mockito.when(accountRepository.findByAccountTypeAndCurrencyId(AccountType.LEDGER, CURRENCY_ID))
+                .thenReturn(Optional.of(ledgerAccount));
 
         Mockito.when(accountRepository.save(ledgerAccount))
                 .thenReturn(expectedDebitedAccount);
         Mockito.when(accountRepository.save(creditedAccount))
                 .thenReturn(expectedCreditedAccount);
+        Mockito.when(accountRepository.findById(creditedAccount.getId()))
+                .thenReturn(Optional.of(creditedAccount));
 
-        LoadAccountResponse response = accountService.loadAccount(ledgerAccount, creditedAccount, new BigDecimal(50));
+        LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(50), CURRENCY_ID);
+
+        LoadAccountResponse response = accountService.loadAccount(creditedAccount.getId(), request);
         Assert.assertNotNull(response);
         assertTrue(response.getBalance().compareTo(expectedCreditedAccount.getBalance()) == 0);
-        assertEquals(BalanceStatus.CR, response.getBalanceStatus());
+        assertEquals(BalanceStatus.DR, response.getBalanceStatus());
         assertEquals(11, response.getAccountId());
     }
+
+    @Test
+    public void noAccountFoundForLoading() {
+        LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(500), CURRENCY_ID);
+        try {
+            accountService.loadAccount(1001, request);
+        } catch (AccountsValidationException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getHttpStatus());
+        }
+    }
+
+    @Test
+    public void noLedgerAccountFoundForLoading() {
+        LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(500), "USD");
+        try {
+            accountService.loadAccount(5, request);
+        } catch (AccountsValidationException e) {
+            assertEquals(HttpStatus.NOT_FOUND, e.getHttpStatus());
+        }
+    }
+
+    @Test
+    public void currencyMismatch() {
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        Account creditedAccount = newAccount(5, "Debited account", "USD", new BigDecimal(500.00),
+                BalanceStatus.DR, now, now, AccountType.CLIENT);
+        Mockito.when(accountRepository.findById(creditedAccount.getId()))
+                .thenReturn(Optional.of(creditedAccount));
+
+        LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(500), CURRENCY_ID);
+        try {
+            accountService.loadAccount(5, request);
+        } catch (AccountsValidationException e) {
+            assertEquals(HttpStatus.PRECONDITION_FAILED, e.getHttpStatus());
+        }
+    }
+
 
     private Account newAccount(long id,
                                String nameOnAccount,
@@ -221,6 +271,11 @@ public class AccountServiceImplTest {
         @Bean
         public AccountService accountService() {
             return new AccountServiceImpl();
+        }
+
+        @Bean
+        public JsonUtil jsonUtil() {
+            return new JsonUtil();
         }
     }
 }

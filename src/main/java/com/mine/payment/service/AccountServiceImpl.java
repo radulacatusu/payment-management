@@ -1,16 +1,24 @@
 package com.mine.payment.service;
 
+import com.mine.payment.api.LoadAccountRequest;
 import com.mine.payment.api.LoadAccountResponse;
+import com.mine.payment.exception.AccountsValidationException;
 import com.mine.payment.model.Account;
 import com.mine.payment.repository.AccountRepository;
 import com.mine.payment.util.AccountType;
 import com.mine.payment.util.BalanceStatus;
+import com.mine.payment.util.JsonUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -19,11 +27,14 @@ import java.util.Optional;
  * @stefanl
  */
 @Service
-@Transactional
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public class AccountServiceImpl implements AccountService {
 
     @Resource
     private AccountRepository accountRepository;
+
+    @Autowired
+    private JsonUtil jsonUtil;
 
     @Override
     public Optional<Account> findById(Long id) {
@@ -46,76 +57,72 @@ public class AccountServiceImpl implements AccountService {
     }
 
 
-    public void updateAccounts(Account debitAccount,
-                               Account creditAccount,
-                               BigDecimal amount) {
+    @Override
+    public LoadAccountResponse loadAccount(long accountId,
+                                           LoadAccountRequest request) throws AccountsValidationException {
+
+        Optional<Account> accountOpt = findById(accountId);
+        if (!accountOpt.isPresent()) {
+            throw new AccountsValidationException(HttpStatus.NOT_FOUND);
+        }
+
+        Account debitAccount = accountOpt.get();
+
+        Optional<Account> ledgerAccount = findByAccountTypeAndCurrencyId(AccountType.LEDGER,
+                request.getCurrencyId());
+        if (!ledgerAccount.isPresent()) {
+            throw new AccountsValidationException(HttpStatus.NOT_FOUND);
+        }
+
+        Account creditAccount = ledgerAccount.get();
+
+        if (!debitAccount.getCurrencyId().equals(request.getCurrencyId())) {
+            Map<String, String> map = new HashMap<>();
+            map.put("message", "Currency mismatch between this account and ledger account.");
+            throw new AccountsValidationException(jsonUtil.writeValueAsString(map), HttpStatus.PRECONDITION_FAILED);
+        }
+
+        updateAccounts(debitAccount, creditAccount, request.getAmount());
+
+        LoadAccountResponse response = new LoadAccountResponse();
+        response.setAccountId(debitAccount.getId());
+        response.setBalance(debitAccount.getBalance());
+        response.setBalanceStatus(debitAccount.getBalanceStatus());
+
+        return response;
+    }
+
+    public void updateAccounts(Account debitAccount, Account creditAccount, BigDecimal amount) {
         Timestamp now = new Timestamp(System.currentTimeMillis());
 
-        debitAccount(debitAccount, amount, now);
-        creditAccount(creditAccount, amount, now);
+        setNewBalance(debitAccount, amount, BalanceStatus.DR);
+        setNewBalance(creditAccount, amount, BalanceStatus.CR);
+
+        debitAccount.setBalanceTimestamp(now);
+        creditAccount.setBalanceTimestamp(now);
 
         accountRepository.save(debitAccount);
         accountRepository.save(creditAccount);
     }
 
-    @Override
-    public LoadAccountResponse loadAccount(Account debitAccount,
-                                           Account creditAccount,
-                                           BigDecimal amount) {
-        updateAccounts(debitAccount, creditAccount, amount);
-
-        LoadAccountResponse response = new LoadAccountResponse();
-        response.setAccountId(creditAccount.getId());
-        response.setBalance(creditAccount.getBalance());
-        response.setBalanceStatus(creditAccount.getBalanceStatus());
-
-        return response;
-    }
-
-    private void debitAccount(Account account,
-                              BigDecimal amount,
-                              Timestamp now) {
-        if (BalanceStatus.DR.equals(account.getBalanceStatus())) {
-            addAmount(account, amount);
-        }
-        if (BalanceStatus.CR.equals(account.getBalanceStatus())) {
-            updateBalanceAndStatus(account, amount, BalanceStatus.DR);
-        }
-        account.setBalanceTimestamp(now);
-    }
-
-    private void creditAccount(Account account,
+    private void setNewBalance(Account account,
                                BigDecimal amount,
-                               Timestamp now) {
-        if (BalanceStatus.CR.equals(account.getBalanceStatus())) {
-            addAmount(account, amount);
-        }
-        if (BalanceStatus.DR.equals(account.getBalanceStatus())) {
-            updateBalanceAndStatus(account, amount, BalanceStatus.CR);
-        }
-        account.setBalanceTimestamp(now);
-    }
-
-    private void addAmount(Account account,
-                           BigDecimal amount) {
-        account.setBalance(account.getBalance().add(amount));
-    }
-
-    private void updateBalanceAndStatus(Account account,
-                                        BigDecimal amount,
-                                        BalanceStatus changedBalanceStatus) {
+                               BalanceStatus operationStatus) {
         BigDecimal newBalance;
 
-        int result = account.getBalance().compareTo(amount);
-        if (result > 0) {
+        if (account.getBalanceStatus().equals(operationStatus)) {
+            newBalance = account.getBalance().add(amount);
+        } else if (account.getBalance().compareTo(amount) >= 0) {
             newBalance = account.getBalance().subtract(amount);
-        } else if (result == 0) {
-            newBalance = account.getBalance().subtract(amount);
-            account.setBalanceStatus(BalanceStatus.DR);
         } else {
             newBalance = amount.subtract(account.getBalance());
-            account.setBalanceStatus(changedBalanceStatus);
+            account.setBalanceStatus(operationStatus);
         }
+
+        if (newBalance.equals(BigDecimal.ZERO)) {
+            account.setBalanceStatus(BalanceStatus.DR);
+        }
+
         account.setBalance(newBalance);
     }
 

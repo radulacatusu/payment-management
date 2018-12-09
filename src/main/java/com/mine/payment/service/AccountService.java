@@ -1,6 +1,9 @@
 package com.mine.payment.service;
 
+import com.mine.payment.api.LoadAccountRequest;
 import com.mine.payment.api.LoadAccountResponse;
+import com.mine.payment.api.TransferRequest;
+import com.mine.payment.exception.AccountsValidationException;
 import com.mine.payment.model.Account;
 import com.mine.payment.util.AccountType;
 
@@ -37,18 +40,17 @@ public interface AccountService {
                                                      String currencyId);
 
     /**
-     * @param debitAccount
-     * @param creditAccount
+     * @param request
+     * @return
+     * @throws AccountsValidationException
      */
-    void updateAccounts(Account debitAccount,
-                        Account creditAccount,
-                        BigDecimal amount);
+    LoadAccountResponse loadAccount(long accountId, LoadAccountRequest request) throws AccountsValidationException;
 
     /**
      * @param debitAccount
      * @param creditAccount
+     * @param amount
      */
-    LoadAccountResponse loadAccount(Account debitAccount,
-                                    Account creditAccount,
-                                    BigDecimal amount);
+    void updateAccounts(Account debitAccount, Account creditAccount, BigDecimal amount);
+
 }

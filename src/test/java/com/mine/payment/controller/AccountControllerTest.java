@@ -85,29 +85,7 @@ public class AccountControllerTest {
     }
 
     @Test
-    public void noAccountFoundForLoading() {
-        LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(500), CURRENCY_ID);
-        Response response = loadAccountRequest(request, 1001);
-        assertEquals(404, response.statusCode());
-    }
-
-    @Test
-    public void noLedgerAccountFoundForLoading() {
-        LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(500), "USD");
-        Response response = loadAccountRequest(request, 2);
-        assertEquals(404, response.statusCode());
-    }
-
-    @Test
-    public void currencyMismatch() {
-        LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(500), "EUR");
-        Response response = loadAccountRequest(request, 5);
-        assertEquals(412, response.statusCode());
-    }
-
-    @Test
     public void loadAccount() {
-
         LoadAccountRequest request = newLoadAccountRequest(new BigDecimal(500), CURRENCY_ID);
         Response response = loadAccountRequest(request, 2);
         assertEquals(200, response.statusCode());
@@ -116,9 +94,9 @@ public class AccountControllerTest {
         Account ledgerAccount = getAccount(1).body().as(Account.class);
 
         assertTrue(account.getBalance().compareTo(new BigDecimal(500)) == 0);
-        assertEquals(BalanceStatus.CR, account.getBalanceStatus());
+        assertEquals(BalanceStatus.DR, account.getBalanceStatus());
 
-        assertTrue(ledgerAccount.getBalance().compareTo(new BigDecimal(1000500)) == 0);
+        assertTrue(ledgerAccount.getBalance().compareTo(new BigDecimal(999500)) == 0);
         assertEquals(BalanceStatus.DR, ledgerAccount.getBalanceStatus());
     }
 
@@ -157,8 +135,8 @@ public class AccountControllerTest {
         return account;
     }
 
-    private LoadAccountRequest newLoadAccountRequest(BigDecimal amount,
-                                                     String currencyId) {
+    public static LoadAccountRequest newLoadAccountRequest(BigDecimal amount,
+                                                           String currencyId) {
         LoadAccountRequest account = new LoadAccountRequest();
         account.setAmount(amount);
         account.setCurrencyId(currencyId);
